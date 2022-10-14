@@ -6,6 +6,9 @@ class ichimoku():
     '''
     This is ichimoku cloud implemantation.
     For more information about how this work you can read Readme.md file.
+    The complexity of coding ichimoku indicators is that there are some parts of it
+    that must be displaced. Althou, in general, indicators aren't that dificult to understand
+    given that there follow the logic of simple ones like EMA´s etc.
     '''
 
     def __init__(self,df, lookback=9):
@@ -50,6 +53,7 @@ class ichimoku():
     #Generates the columns with indicators values
     def iterator(self):
         indicators = [self.tenkan_sen,self.kijun_sen,self.senkou_span_a,self.senkou_span_b]
+        indicator_name = ['tenkan','kijun','senkou_span_a','senkou_span_b']
         index = 0
         for indicator in indicators:
             c = 0
@@ -60,7 +64,7 @@ class ichimoku():
             for i in range(len(self.df)-len(values)):
                 values.append(None)
             values.reverse()
-            self.df[f'indicator{index}'] = values
+            self.df[f'{indicator_name[index]}'] = values
             index += 1
         return self.df
 
@@ -80,8 +84,8 @@ class ichimoku():
     #This is a litle bit harcoded, it moves senoku spans fordward in time
     def move_indicators(self):
         chikou   = list(self.df['close'][26:])
-        senkou_a = list(self.df['indicator2'][:-26])
-        senkou_b = list(self.df['indicator3'][:-26])
+        senkou_a = list(self.df['senkou_span_a'][:-26])
+        senkou_b = list(self.df['senkou_span_b'][:-26])
         fill_nan = list(np.full(26, None))
         senkou_a_displaced = fill_nan+senkou_a
         senkou_b_displaced = fill_nan+senkou_b
@@ -97,7 +101,7 @@ class ichimoku():
     #Creates a new column with tk_cross value
     #1 for uptrend -1 for downtrend 0 if there are equals
     def tk_cross(self):
-        result = list(map(lambda x, y: 1 if x > y else(-1 if x < y else 0),self.df['indicator0'],self.df['indicator1']))
+        result = list(map(lambda x, y: 1 if x > y else(-1 if x < y else 0),self.df['tenkan'],self.df['kijun']))
         self.df['tk_cross'] = result
         return self.df
 
@@ -108,15 +112,19 @@ class ichimoku():
         return self.df
 
     def price_vs_kumo(self):
+        #The complexity of this function is given by the fact that the price can be
+        #abobe the cloud, below the cloud, in the middle.
+        #but the cloud is form by two indicators, so you must eval those indicators position
+
         self.df['price_vs_kumo'] = list(np.full(len(self.df), 0))
         for i in range(len(self.df)):
             if self.df['senkou_a_ahead'][i] > self.df['senkou_b_ahead'][i]:
                 if self.df['close'][i] > self.df['senkou_a_ahead'][i]:
                     self.df['price_vs_kumo'][i] = 1
                 elif self.df['close'][i] > self.df['senkou_b_ahead'][i]:
-                    self.df['price_vs_kumo'][i] = -1
-                else:
                     self.df['price_vs_kumo'][i] = 0
+                else:
+                    self.df['price_vs_kumo'][i] = -1
             elif self.df['close'][i] < self.df['senkou_a_ahead'][i]:
                 self.df['price_vs_kumo'][i] = -1
             elif self.df['close'][i] > self.df['senkou_b_ahead'][i]:
@@ -143,18 +151,76 @@ class ichimoku():
                 break
         return counter
 
+    def tk_tail(self): # return tail of tk cross beacause is not posible to eval distance to previous cross
+        c = 0
+        tk = self.df['tk_cross'][c]
+        change = tk
+        while tk == change:
+            tk = self.df['tk_cross'][c]
+            c += 1
+            if c > len(self.df):
+                break
+        return c-2
+
+    def cross_distance_list(self):
+        tail = self.tk_tail()
+        values = []
+        c = 0
+        #for i in self.df.index:
+        for i in range(0,(len(self.df)-28-tail)):
+            last_value = len(self.df)-28-c                      #take index 
+            tk = self.df['tk_cross'][last_value]                #take tk value for index
+            change = tk                                         
+            counter = 0
+            while tk == change:                                 #if tk value doesnt change, repeat
+                tk = self.df['tk_cross'][last_value-counter]    #tk = tk value from previous register
+                counter = counter + 1                   
+                if counter > len(self.df):
+                    break
+            c += 1
+            values.append(counter)
+
+        fill_nan = list(np.full(tail, -1))
+        fill_nan_2 = list(np.full(28, -1))
+        values.reverse()
+        values = fill_nan+values
+        
+        self.df['cross_distance'] = values+fill_nan_2
+        self.df['cross_distance'] = self.df['cross_distance'].astype('Int64')
+        return self.df
+
     def cross_strenght(self,distance):
         dist = -distance-28
-        print(dist)
         price_on_cross = self.df['close'].iloc[dist]
-        tenkan = self.df['indicator0'].iloc[dist] #tenkan
-        kijun = self.df['indicator1'].iloc[dist]  #kijun
+        tenkan = self.df['tenkan'].iloc[dist] #tenkan
+        kijun = self.df['kijun'].iloc[dist]  #kijun
         if price_on_cross > tenkan and price_on_cross > kijun:
-            return -1
+            return [1,0] #strong long weak short
         elif price_on_cross < tenkan and price_on_cross < kijun:
-            return 1
-        else:
-            return 0
+            return [-1,0] #strong short weak long
+        else: 
+            return [0,0] #undefined
+    
+    def cross_signal(self):
+        result = list(map(lambda x: 1 if x == 2 else (0 if x == -1 else 0), self.df['cross_distance']))
+        self.df['cross_signal'] = result
+        return self.df
+        
+    def cross_strenght_2(self):
+        search = self.df['cross_signal'].where(self.df['cross_signal'] == 1)
+        index = search.dropna()
+        prices = []
+        for i in index:
+            price_on_cross = self.df['close'][i]
+            tenkan = self.df['tenkan'][i]
+            kijun = self.df['kijun'][i]
+            if price_on_cross > tenkan and price_on_cross > kijun:
+                prices.append([i,1,0])
+            elif price_on_cross < tenkan and price_on_cross < kijun:
+                prices.append([i,1,0])
+            else:
+                prices.append([i,0,0])
+        return prices
 
 if __name__ == '__main__':
     ichimoku()

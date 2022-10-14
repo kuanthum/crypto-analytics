@@ -46,7 +46,7 @@ def candle_stick(df, dfs):
         go.Scatter(
             mode = 'lines',
             x=df['date'],
-            y=df["indicator0"],
+            y=df["tenkan"],
             line={'color':'#5e9c76', 'width':2},
             name='Tenkan-sen'
             #1874CD
@@ -56,7 +56,7 @@ def candle_stick(df, dfs):
         go.Scatter(
             mode = 'lines',
             x=df['date'],
-            y=df["indicator1"],
+            y=df["kijun"],
             line={'color':'#c74343', 'width':2},
             name='Kijun-sen'
         ))

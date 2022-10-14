@@ -2,11 +2,10 @@
 import streamlit as st
 from main import df
 from etl import df_etl, cloud_color_encoding, separate_dataframe
-from analytics import tk_cross
 from graphs import candle_stick
 from ichimoku import ichimoku
 
-from html_ import card
+from html_ import card, card_2
 
 st.set_page_config(layout="wide")
 st.sidebar.image(r'logo2.png')
@@ -71,15 +70,11 @@ ichi = ichimoku(df)
 ichi.iterator()
 ichi.add_forecast()
 
-
-
 # --- VISUALS ----
 
 graph = ichi.move_indicators()
 graph['colors'] = cloud_color_encoding(graph)
 dfs = separate_dataframe(graph)
-
-
 
 fig = candle_stick(graph,dfs)
 
@@ -137,18 +132,40 @@ with col3:
     st.markdown(card5, unsafe_allow_html=True)
 
     st.text('CROSS STR.')
-    card6 = card(cross_strenght,light(cross_strenght))
-    st.markdown(card6, unsafe_allow_html=True)
+    card5 = card_2(cross_strenght[0],(163,186,195))
+    st.markdown(card5, unsafe_allow_html=True)
+
+    st.text('CROSS STR.')
+    card5 = card_2(cross_strenght[1],(163,186,195))
+    st.markdown(card5, unsafe_allow_html=True)
+
+
 
 # --- Dataframe ---
+ichi.cross_distance_list()
+df = ichi.cross_signal()
 
 check = st.checkbox("Display data", value=False)
 if check:
-    st.dataframe(graph, use_container_width=True)
+    st.dataframe(df, use_container_width=True)
 
+# --- Downlad data ---
 
+@st.cache
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
 
+csv = convert_df(df)
 
+st.download_button(
+    label="Download data as CSV",
+    data=csv,
+    file_name='large_df.csv',
+    mime='text/csv',
+)
+
+st.text(ichi.cross_strenght_2())
 
 
 
