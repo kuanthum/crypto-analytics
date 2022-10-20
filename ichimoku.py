@@ -7,18 +7,22 @@ class ichimoku():
     This is ichimoku cloud implemantation.
     For more information about how this work you can read Readme.md file.
     The complexity of coding ichimoku indicators is that there are some parts of it
-    that must be displaced. Althou, in general, indicators aren't that dificult to understand
+    that must be displaced. But, in general, indicators aren't that dificult to understand
     given that they follow the logic of simple ones like EMA´s etc.
     I tried to make the code all verbose as posible on porpouse, for understanding and easy bugs tracking
     '''
 
     def __init__(self,df, lookback=9):
+        '''
+        For default Ichimoku is calculated taken 9 candles displacement as base.
+        Is recomended to double this number if you are trading crypto
+        '''
+
         self.df         = df
         self.close      = df['close']
         self.high       = df['high']
         self.low        = df['low']
         self.last_price = float(self.close.iloc[-1])
-
         self.lookback = lookback
         self.l2=(lookback*3)-1
         self.l3=self.l2*2
@@ -26,6 +30,10 @@ class ichimoku():
 
     #Convertion line
     def tenkan_sen(self, counter=0):
+        '''
+        Returns 
+        '''
+
         thigh = float(self.high[(-self.lookback)-counter:(self.last_candle)-counter].max())
         tlow  = float(self.low[(-self.lookback)-counter:(self.last_candle)-counter].min())
         tenkan_sen = (thigh+tlow)/2
