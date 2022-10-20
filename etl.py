@@ -30,3 +30,6 @@ def separate_dataframe(df):
     for name, data in df:
         dfs.append(data)
     return dfs
+
+def select_range(df,_from,_to):
+    dfs = separate_dataframe(graph[select[0]:select[1]])

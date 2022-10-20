@@ -8,7 +8,8 @@ class ichimoku():
     For more information about how this work you can read Readme.md file.
     The complexity of coding ichimoku indicators is that there are some parts of it
     that must be displaced. Althou, in general, indicators aren't that dificult to understand
-    given that there follow the logic of simple ones like EMA´s etc.
+    given that they follow the logic of simple ones like EMA´s etc.
+    I tried to make the code all verbose as posible on porpouse, for understanding and easy bugs tracking
     '''
 
     def __init__(self,df, lookback=9):
@@ -114,7 +115,7 @@ class ichimoku():
     def price_vs_kumo(self):
         #The complexity of this function is given by the fact that the price can be
         #abobe the cloud, below the cloud, in the middle.
-        #but the cloud is form by two indicators, so you must eval those indicators position
+        #but the cloud is form by two indicators, so you must eval those indicators position to
 
         self.df['price_vs_kumo'] = list(np.full(len(self.df), 0))
         for i in range(len(self.df)):
@@ -139,6 +140,7 @@ class ichimoku():
         self.df['price_vs_chikou'] = self.df['price_vs_chikou'].astype('Int64')
         return self.df
 
+    #cross distance directo
     def cross_distance(self):
         last_value = len(self.df)-28
         tk = self.df['tk_cross'][last_value]
@@ -151,7 +153,8 @@ class ichimoku():
                 break
         return counter
 
-    def tk_tail(self): # return tail of tk cross beacause is not posible to eval distance to previous cross
+    # return tail of tk cross beacause is not posible to eval distance to previous cross
+    def tk_tail(self):
         c = 0
         tk = self.df['tk_cross'][c]
         change = tk
@@ -162,6 +165,7 @@ class ichimoku():
                 break
         return c-2
 
+    # Appends cross distance to every row of the dataframe
     def cross_distance_list(self):
         tail = self.tk_tail()
         values = []
@@ -189,38 +193,50 @@ class ichimoku():
         self.df['cross_distance'] = self.df['cross_distance'].astype('Int64')
         return self.df
 
+    #tk strenght directo
     def cross_strenght(self,distance):
         dist = -distance-28
         price_on_cross = self.df['close'].iloc[dist]
         tenkan = self.df['tenkan'].iloc[dist] #tenkan
         kijun = self.df['kijun'].iloc[dist]  #kijun
         if price_on_cross > tenkan and price_on_cross > kijun:
-            return [1,0] #strong long weak short
+            return [1,-1] #strong long weak short
         elif price_on_cross < tenkan and price_on_cross < kijun:
-            return [-1,0] #strong short weak long
+            return [-1,1] #strong short weak long
         else: 
             return [0,0] #undefined
     
+    # Identify where the tk cross was done
     def cross_signal(self):
-        result = list(map(lambda x: 1 if x == 2 else (0 if x == -1 else 0), self.df['cross_distance']))
+        result = list(map(lambda x: 1 if x == 3 else (0 if x == -1 else None), self.df['cross_distance']))
         self.df['cross_signal'] = result
+        self.df['cross_signal'] = self.df['cross_signal'].astype('Int64')
         return self.df
         
+    #Append tk cross strenght for every value in df
     def cross_strenght_2(self):
         search = self.df['cross_signal'].where(self.df['cross_signal'] == 1)
         index = search.dropna()
         prices = []
-        for i in index:
+        for i in index.index:
             price_on_cross = self.df['close'][i]
             tenkan = self.df['tenkan'][i]
             kijun = self.df['kijun'][i]
             if price_on_cross > tenkan and price_on_cross > kijun:
-                prices.append([i,1,0])
+                prices.append([i,1,-1]) #Strong long weak short
             elif price_on_cross < tenkan and price_on_cross < kijun:
-                prices.append([i,1,0])
+                prices.append([i,-1,1]) #Strong short weak long
             else:
-                prices.append([i,0,0])
-        return prices
+                prices.append([i,0,0])  #Unefined
+
+        self.df['strong'] = np.full(len(self.df), None)
+        self.df['weak']   = np.full(len(self.df), None)
+        for i in prices:
+            self.df['strong'][i[0]] = i[1]
+            self.df['weak'][i[0]] = i[2]
+
+        return self.df
+    
 
 if __name__ == '__main__':
     ichimoku()

@@ -1,4 +1,5 @@
 import plotly.graph_objects as go
+import numpy as np
 
 def candle_stick(df, dfs):
 
@@ -13,6 +14,19 @@ def candle_stick(df, dfs):
                     close=df['close'])
                 ],
             )
+
+    fig.add_trace(
+        go.Scatter(
+            x=df['date'],
+            y=df['close'].where(df['cross_signal'] == 1),
+            mode='markers',
+            marker_size=20,
+            marker_color= np.select(
+                [df["tk_cross"] > 0, df["tk_cross"] < 0], ["green", "red"], "rgba(0,0,0,0)"
+            ),
+            name='coso'
+        )
+    )
 
     cs = fig.data[0]
 

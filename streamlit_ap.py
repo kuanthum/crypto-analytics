@@ -26,7 +26,6 @@ intervals = ['1 min','3 min','5 min','15 min','30 min','1 h','2 h','4 h','6 h','
 interval = st.sidebar.selectbox('Interval', intervals)
 
 #Intervals and from_time
-
 min_range, h_range = range(0,5), range(5,10)
 if intervals.index(interval) in min_range:
     t_delta = 'minutes'
@@ -63,7 +62,7 @@ with col4:
 #limit = st.sidebar.number_input('limit', min_value=50, value=1000, step=50)
 
 #eliminar registros futuros
-select = st.slider('Select range', min_value=df.index.min(), max_value=df.index.max(),value=(df.index.min(),round(df.index.max()/2)))
+select = st.slider('Time travel', min_value=df.index.min(), max_value=df.index.max(),value=(df.index.min(),round(df.index.max()/2)))
 
 df=df[select[0]:select[1]]
 ichi = ichimoku(df)
@@ -73,14 +72,6 @@ ichi.add_forecast()
 # --- VISUALS ----
 
 graph = ichi.move_indicators()
-graph['colors'] = cloud_color_encoding(graph)
-dfs = separate_dataframe(graph)
-
-fig = candle_stick(graph,dfs)
-
-col1, col2, col3 = st.columns([8,1,1])
-with col1:
-    st.plotly_chart(fig, use_container_width=True)
 
 ichi.tk_cross()
 ichi.kumo_ahead()
@@ -94,6 +85,18 @@ pk = ichi.df['price_vs_kumo'][len(ichi.df)-28]
 pc = ichi.df['price_vs_chikou'][len(ichi.df)-28]
 cross_distance = ichi.cross_distance()
 cross_strenght = ichi.cross_strenght(cross_distance)
+ichi.cross_distance_list()
+ichi.cross_signal()
+df = ichi.cross_strenght_2()
+
+
+graph['colors'] = cloud_color_encoding(graph)
+dfs = separate_dataframe(graph)
+fig = candle_stick(graph,dfs)
+
+col1, col2, col3 = st.columns([8,1,1])
+with col1:
+    st.plotly_chart(fig, use_container_width=True)
 
 def light(x):
     color = (0,0,0)
@@ -131,19 +134,18 @@ with col3:
     card5 = card(cross_distance,(163,186,195))
     st.markdown(card5, unsafe_allow_html=True)
 
-    st.text('CROSS STR.')
-    card5 = card_2(cross_strenght[0],(163,186,195))
+    st.text('CROSS STRONG')
+    card5 = card(cross_strenght[0],light(cross_strenght[0]))
     st.markdown(card5, unsafe_allow_html=True)
 
-    st.text('CROSS STR.')
-    card5 = card_2(cross_strenght[1],(163,186,195))
+    st.text('CROSS WEAK')
+    card5 = card(cross_strenght[1],light(cross_strenght[1]))
     st.markdown(card5, unsafe_allow_html=True)
 
 
 
 # --- Dataframe ---
-ichi.cross_distance_list()
-df = ichi.cross_signal()
+
 
 check = st.checkbox("Display data", value=False)
 if check:
@@ -161,11 +163,9 @@ csv = convert_df(df)
 st.download_button(
     label="Download data as CSV",
     data=csv,
-    file_name='large_df.csv',
+    file_name='ichimoku.csv',
     mime='text/csv',
 )
-
-st.text(ichi.cross_strenght_2())
 
 
 
