@@ -1,9 +1,10 @@
 
 import streamlit as st
-from main import df
+from bybit_conn import get_data
 from etl import df_etl, cloud_color_encoding, separate_dataframe
 from graphs import candle_stick
 from ichimoku import ichimoku
+from datetime import datetime
 
 from html_ import card, card_2
 
@@ -12,9 +13,7 @@ st.sidebar.image(r'logo2.png')
 st.title('ICHIMOKU CLOUD ANALYSIS')
 
 
-data = df()
-
-
+data = get_data()
 # --- Config ---
 col1,col3, col4 = st.columns(3)
 with col1:
@@ -168,5 +167,17 @@ st.download_button(
 )
 
 
+date = st.sidebar.date_input(label='date')
+st.text(date)
 
+time = st.sidebar.time_input(label='time')
+st.text(time)
 
+def format_date_unix(date, time):
+    date = str(date)
+    time = str(time)
+    formated_date = datetime.strptime(date+' '+time,"%Y-%m-%d %H:%M:%S")
+    unix_timestamp = round(datetime.timestamp(formated_date))
+    return unix_timestamp
+
+st.text(format_date_unix(date,time))

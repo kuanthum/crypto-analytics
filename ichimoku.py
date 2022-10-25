@@ -23,17 +23,13 @@ class ichimoku():
         self.high       = df['high']
         self.low        = df['low']
         self.last_price = float(self.close.iloc[-1])
-        self.lookback = lookback
-        self.l2=(lookback*3)-1
-        self.l3=self.l2*2
-        self.last_candle = len(df)
+        self.lookback   = lookback
+        self.l2         =(lookback*3)-1
+        self.l3         =self.l2*2
+        self.last_candle= len(df)
 
     #Convertion line
     def tenkan_sen(self, counter=0):
-        '''
-        Returns 
-        '''
-
         thigh = float(self.high[(-self.lookback)-counter:(self.last_candle)-counter].max())
         tlow  = float(self.low[(-self.lookback)-counter:(self.last_candle)-counter].min())
         tenkan_sen = (thigh+tlow)/2

@@ -4,9 +4,9 @@ from pybit import usdt_perpetual
 from datetime import datetime, timedelta
 
 
-class df():
+class get_data():
 
-    def __init__(self,symbol:str = 'BTCUSDT',interval:int = 1,limit:int = 1000,from_time:int = 30):
+    def __init__(self):
 
         '''
         All this code is for interact with bybit.
@@ -17,11 +17,6 @@ class df():
         #API and Secret keys
         credentials_read = open('credentials.json')
         credentials      = json.load(credentials_read)
-
-        self.symbol = symbol
-        self.interval = interval
-        self.limit = limit
-        self.from_time = from_time
         self.endpoint = credentials['endpoint']
         self.api_key = credentials['api_key'],
         self.api_secret = credentials['api_secret']
@@ -41,24 +36,35 @@ class df():
         return symbols
     
     #time convertion
-    def from_time_format(self):
+    def from_time_format(self, minutes):
         now = datetime.now()
-        from_time =  now - timedelta(minutes=self.from_time)
+        from_time =  now - timedelta(minutes)
         from_time_unix = round(datetime.timestamp(from_time))
         return from_time_unix
 
     #query market data
-    def query_kline(self):
+    def query_kline(self, from_time, symbol='BTCUSDT', interval=1, limit=1000):
         response = self.session.query_kline(
-            symbol=self.symbol,
-            interval=self.interval,
-            limit=self.limit,
-            from_time=self.from_time_format(),
+            symbol=symbol,
+            interval=interval,
+            limit=limit,
+            from_time=self.from_time_format(from_time),
         )
         df = pd.DataFrame(response['result'])
         return df
     
+        #query market data
+    def query_kline_raw(self, from_time, symbol='BTCUSDT', interval=1, limit=1000):
+        response = self.session.query_kline(
+            symbol=symbol,
+            interval=interval,
+            limit=limit,
+            from_time=self.from_time_format(from_time),
+        )
+        result = response['result']
+        return result
+    
     #orders
 
 if __name__ == '__main__':
-    df()
+    get_data()
