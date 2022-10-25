@@ -15,6 +15,15 @@ def candle_stick(df, dfs):
                 ],
             )
 
+    cs = fig.data[0]
+
+    # Set line and fill colors
+    cs.increasing.fillcolor = '#4267b2'
+    cs.increasing.line.color = '#4267b2'
+    cs.decreasing.fillcolor = '#FF4136'
+    cs.decreasing.line.color = '#FF4136'
+    fig.update_traces(name='Price', showlegend = True)
+
     fig.add_trace(
         go.Scatter(
             x=df['date'],
@@ -24,23 +33,13 @@ def candle_stick(df, dfs):
             marker_color= np.select(
                 [df["tk_cross"] > 0, df["tk_cross"] < 0], ["green", "red"], "rgba(0,0,0,0)"
             ),
-            name='coso'
+            name='tk_cross'
         )
     )
-
-    cs = fig.data[0]
-
-    # Set line and fill colors
-    cs.increasing.fillcolor = '#4267b2'
-    cs.increasing.line.color = '#4267b2'
-    cs.decreasing.fillcolor = '#FF4136'
-    cs.decreasing.line.color = '#FF4136'
-
-    fig.update_traces(name='Price', showlegend = True)
     
     fig.update_layout(
         title='',
-        margin=dict(l=10, r=30, t=30, b=10),
+        #margin=dict(l=10, r=30, t=30, b=10),
         plot_bgcolor="#e9ebee",
         paper_bgcolor="#e9ebee",
         autosize=True,
