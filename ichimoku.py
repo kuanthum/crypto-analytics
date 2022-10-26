@@ -144,7 +144,7 @@ class ichimoku():
         self.df['price_vs_chikou'] = self.df['price_vs_chikou'].astype('Int64')
         return self.df
 
-    #cross distance directo
+    #cross distance directo DEPRECATED
     def cross_distance(self):
         last_value = len(self.df)-28
         tk = self.df['tk_cross'][last_value]
@@ -197,7 +197,7 @@ class ichimoku():
         self.df['cross_distance'] = self.df['cross_distance'].astype('Int64')
         return self.df
 
-    #tk strenght directo
+    #tk strenght directo DEPRECATED
     def cross_strenght(self,distance):
         dist = -distance-28
         price_on_cross = self.df['close'].iloc[dist]
@@ -240,6 +240,35 @@ class ichimoku():
             self.df['weak'][i[0]] = i[2]
 
         return self.df
-    
+
+    def cloud_color_encoding(self):
+        colors = []
+        for row in range(0,len(self.df)):
+            if self.df['senkou_a_ahead'][row] > self.df['senkou_b_ahead'][row]:
+                color = 1
+            else:
+                color = 0
+            colors.append(color)
+        self.df['colors'] = colors
+        return self.df
+
+    def run(self):
+        self.iterator()
+        self.add_forecast()
+        self.move_indicators()
+        
+        self.tk_cross()
+        self.kumo_ahead()
+        self.price_vs_kumo()
+        self.price_vs_chikou()
+
+        self.cross_distance_list()
+        self.cross_signal()
+        self.cross_strenght_2()
+
+        self.cloud_color_encoding()
+
+        return self.df
+
 if __name__ == '__main__':
     ichimoku()

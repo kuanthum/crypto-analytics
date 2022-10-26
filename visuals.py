@@ -17,7 +17,7 @@ def candle_stick(df, dfs):
 
     cs = fig.data[0]
 
-    # Set line and fill colors
+    # Set line and fill colors for candles
     cs.increasing.fillcolor = '#4267b2'
     cs.increasing.line.color = '#4267b2'
     cs.decreasing.fillcolor = '#FF4136'
@@ -39,11 +39,11 @@ def candle_stick(df, dfs):
     
     fig.update_layout(
         title='',
-        #margin=dict(l=10, r=30, t=30, b=10),
+        margin=dict(l=0, r=0, t=0, b=0),
         plot_bgcolor="#e9ebee",
         paper_bgcolor="#e9ebee",
         autosize=True,
-        height=600
+        height=800
         )
 
     fig.add_trace(
