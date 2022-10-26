@@ -25,6 +25,7 @@ class get_data():
         self.endpoint = credentials['endpoint']
         self.api_key = credentials['api_key'],
         self.api_secret = credentials['api_secret']
+        
         #Connection
         self.session = usdt_perpetual.HTTP(
                     endpoint=self.endpoint,

@@ -10,8 +10,7 @@ from html_ import card, card_2
 
 st.set_page_config(layout="wide")
 st.sidebar.image(r'logo2.png')
-st.title('ICHIMOKU CLOUD ANALYSIS')
-
+st.title('ICHIMOKU CLOUD')
 
 data = get_data()
 # --- Config ---
