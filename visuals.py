@@ -1,4 +1,5 @@
 import plotly.graph_objects as go
+import numpy as np
 
 def candle_stick(df, dfs):
 
@@ -16,21 +17,33 @@ def candle_stick(df, dfs):
 
     cs = fig.data[0]
 
-    # Set line and fill colors
+    # Set line and fill colors for candles
     cs.increasing.fillcolor = '#4267b2'
     cs.increasing.line.color = '#4267b2'
     cs.decreasing.fillcolor = '#FF4136'
     cs.decreasing.line.color = '#FF4136'
-
     fig.update_traces(name='Price', showlegend = True)
+
+    fig.add_trace(
+        go.Scatter(
+            x=df['date'],
+            y=df['close'].where(df['cross_signal'] == 1),
+            mode='markers',
+            marker_size=20,
+            marker_color= np.select(
+                [df["tk_cross"] > 0, df["tk_cross"] < 0], ["green", "red"], "rgba(0,0,0,0)"
+            ),
+            name='tk_cross'
+        )
+    )
     
     fig.update_layout(
         title='',
-        margin=dict(l=10, r=30, t=30, b=10),
+        margin=dict(l=0, r=0, t=0, b=0),
         plot_bgcolor="#e9ebee",
         paper_bgcolor="#e9ebee",
         autosize=True,
-        height=600
+        height=800
         )
 
     fig.add_trace(
@@ -46,7 +59,7 @@ def candle_stick(df, dfs):
         go.Scatter(
             mode = 'lines',
             x=df['date'],
-            y=df["indicator0"],
+            y=df["tenkan"],
             line={'color':'#5e9c76', 'width':2},
             name='Tenkan-sen'
             #1874CD
@@ -56,7 +69,7 @@ def candle_stick(df, dfs):
         go.Scatter(
             mode = 'lines',
             x=df['date'],
-            y=df["indicator1"],
+            y=df["kijun"],
             line={'color':'#c74343', 'width':2},
             name='Kijun-sen'
         ))
